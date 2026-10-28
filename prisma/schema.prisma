@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  password     String
+  role         String      @default("EMPLOYEE") // "OWNER" or "EMPLOYEE"
+  phone        String?
+  targetDaily  Int         @default(150)
+  active       Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  leads        Lead[]      @relation("AssignedLeads")
+  callLogs     CallLog[]
+  followUps    FollowUp[]
+}
+
+model Lead {
+  id               String      @id @default(cuid())
+  name             String
+  phone            String
+  company          String?
+  email            String?
+  status           String      @default("NEW") // "NEW", "IN_PROGRESS", "FOLLOW_UP", "INTERESTED", "NOT_INTERESTED", "CONVERTED", "LOST"
+  priority         String      @default("MEDIUM") // "LOW", "MEDIUM", "HIGH"
+  source           String?     @default("Outbound")
+  callCount        Int         @default(0)
+  lastContactedAt  DateTime?
+  nextFollowUpDate DateTime?
+  notes            String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  assignedToId     String?
+  assignedTo       User?       @relation("AssignedLeads", fields: [assignedToId], references: [id], onDelete: SetNull)
+  callLogs         CallLog[]
+  followUps        FollowUp[]
+}
+
+model CallLog {
+  id              String      @id @default(cuid())
+  leadId          String
+  lead            Lead        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  employeeId      String
+  employee        User        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  remark          String      // "INTERESTED", "NOT_INTERESTED", "NO_ANSWER", "CALL_BACK_LATER", "FOLLOW_UP", "CONVERTED", "WRONG_NUMBER"
+  notes           String?
+  durationSeconds Int         @default(0)
+  followUpDate    DateTime?
+  createdAt       DateTime    @default(now())
+}
+
+model FollowUp {
+  id            String      @id @default(cuid())
+  leadId        String
+  lead          Lead        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  employeeId    String
+  employee      User        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  scheduledDate DateTime
+  status        String      @default("PENDING") // "PENDING", "COMPLETED", "OVERDUE", "RESCHEDULED"
+  notes         String?
+  createdAt     DateTime    @default(now())
+  completedAt   DateTime?
+}
