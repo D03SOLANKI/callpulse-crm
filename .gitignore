@@ -17,13 +17,17 @@ yarn-debug.log*
 yarn-error.log*
 
 # Environment files
+.env
+.env.*
+!.env.example
 .env*.local
 
 # TypeScript
 tsconfig.tsbuildinfo
 next-env.d.ts
 
-# SQLite Database (optional - seed.js recreates clean state)
+# SQLite Database
+prisma/dev.db
 prisma/dev.db-journal
 
 # OS generated files
